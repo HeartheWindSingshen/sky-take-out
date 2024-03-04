@@ -60,7 +60,7 @@ public class CategoryController {
         categoryService.startOrStop(status,id);
         return Result.success();
     }
-    //TODO 不知道为啥要做这一步
+    //TODO 菜品管理中菜品分类使用
     @GetMapping("/list")
     @ApiOperation("根据类型查询分类")
     public Result<List<Category>>list(Integer type){
