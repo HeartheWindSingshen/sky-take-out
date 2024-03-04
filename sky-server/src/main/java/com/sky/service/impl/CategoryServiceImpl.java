@@ -77,7 +77,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void startOrStop(Integer status, Long id) {
         Category category = Category.builder().status(status).id(id)
-                .updateTime(LocalDateTime.now()).updateUser(BaseContext.getCurrentId())
                 .build();
         categoryMapper.update(category);
 
