@@ -65,6 +65,7 @@ public class CategoryController {
     @ApiOperation("根据类型查询分类")
     public Result<List<Category>>list(Integer type){
         List<Category> list = categoryService.list(type);
+        System.out.println("根据类型查询分类执行todo");
         return Result.success(list);
     }
 
