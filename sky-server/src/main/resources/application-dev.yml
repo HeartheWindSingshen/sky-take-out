@@ -11,3 +11,8 @@ sky:
     access-key-id: LTAI5t8mjrwUWB1YWGnHiZLV
     access-key-secret: MPDXjlMBDkBVCBNO3OPpwLEyA6VdAT
     bucket-name: web-framework-st
+  redis:
+    host: localhost
+    port: 6379
+    password: 111111
+    database: 10
