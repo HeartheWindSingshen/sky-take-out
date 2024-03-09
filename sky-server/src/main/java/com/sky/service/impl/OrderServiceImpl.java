@@ -272,6 +272,13 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    @Override
+    public LocalDateTime payment(OrdersPaymentDTO ordersPaymentDTO) {
+        orderMapper.setStatus(ordersPaymentDTO.getOrderNumber());
+        LocalDateTime orderTime = orderMapper.getOrderTime(ordersPaymentDTO.getOrderNumber());
+        return orderTime.plusMinutes(30);
+    }
+
     private List<OrderVO>getOrderVOList(Page<Orders>page){
         List<OrderVO> orderVOList = new ArrayList<>();
 

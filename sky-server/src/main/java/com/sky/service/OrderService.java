@@ -7,6 +7,8 @@ import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Select;
 
+import java.time.LocalDateTime;
+
 public interface OrderService {
     OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO);
 
@@ -31,4 +33,6 @@ public interface OrderService {
     void delivery(Long id);
 
     void complete(Long id);
+
+    LocalDateTime payment(OrdersPaymentDTO ordersPaymentDTO);
 }

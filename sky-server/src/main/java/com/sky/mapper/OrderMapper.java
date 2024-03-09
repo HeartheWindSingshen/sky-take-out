@@ -6,6 +6,7 @@ import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -34,4 +35,10 @@ public interface OrderMapper {
     Integer countByMap(Map map);
 
     List<GoodsSalesDTO> getSalesTop10(LocalDateTime begin, LocalDateTime end);
+
+    @Update("update orders set status=2 where number=#{number}")
+    void setStatus(String number);
+
+    @Select("select order_time from orders where number=#{number}")
+    LocalDateTime getOrderTime(String number);
 }
