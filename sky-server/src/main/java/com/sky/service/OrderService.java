@@ -35,4 +35,6 @@ public interface OrderService {
     void complete(Long id);
 
     LocalDateTime payment(OrdersPaymentDTO ordersPaymentDTO);
+
+    void reminder(Long id);
 }

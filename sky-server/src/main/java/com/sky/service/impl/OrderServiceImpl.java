@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
@@ -21,6 +22,7 @@ import com.sky.service.OrderService;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,9 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +47,8 @@ public class OrderServiceImpl implements OrderService {
     private ShoppingCartMapper shoppingCartMapper;
     @Autowired
     private AddressBookMapper addressBookMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     @Override
     @Transactional
@@ -275,8 +281,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public LocalDateTime payment(OrdersPaymentDTO ordersPaymentDTO) {
         orderMapper.setStatus(ordersPaymentDTO.getOrderNumber());
+        paySuccess(ordersPaymentDTO.getOrderNumber());
         LocalDateTime orderTime = orderMapper.getOrderTime(ordersPaymentDTO.getOrderNumber());
-        return orderTime.plusMinutes(30);
+        return orderTime.plusMinutes(60);
     }
 
     private List<OrderVO>getOrderVOList(Page<Orders>page){
@@ -295,6 +302,23 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderVOList;
     }
+
+
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.getById(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        //基于WebSocket实现催单
+        Map map = new HashMap();
+        map.put("type", 2);//2代表用户催单
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orders.getNumber());
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
     private String getOrderDishesStr(Orders orders){
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
         // 将每一条订单菜品信息拼接为字符串（格式：宫保鸡丁*3；）
@@ -306,4 +330,30 @@ public class OrderServiceImpl implements OrderService {
         return String.join("", orderDishList);
     }
 
+    public void paySuccess(String outTradeNo) {
+        // 当前登录用户id
+        Long userId = BaseContext.getCurrentId();
+
+        // 根据订单号查询当前用户的订单
+        Orders ordersDB = orderMapper.getByNumberAndUserId(outTradeNo, userId);
+
+        // 根据订单id更新订单的状态、支付方式、支付状态、结账时间
+        Orders orders = Orders.builder()
+                .id(ordersDB.getId())
+                .status(Orders.TO_BE_CONFIRMED)
+                .payStatus(Orders.PAID)
+                .checkoutTime(LocalDateTime.now())
+                .build();
+
+        orderMapper.update(orders);
+        //////////////////////////////////////////////
+        Map map = new HashMap();
+        map.put("type", 1);//消息类型，1表示来单提醒
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + outTradeNo);
+
+        //通过WebSocket实现来单提醒，向客户端浏览器推送消息
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+        ///////////////////////////////////////////////////
+    }
 }

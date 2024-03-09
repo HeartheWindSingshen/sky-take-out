@@ -60,6 +60,12 @@ public class OrderController {
         LocalDateTime estimatedDeliveryTime=orderService.payment(ordersPaymentDTO);
         return Result.success(estimatedDeliveryTime.toString());
     }
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("用户催单")
+    public Result reminder(@PathVariable("id") Long id) {
+        orderService.reminder(id);
+        return Result.success();
+    }
 
 
 
